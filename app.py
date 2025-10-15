@@ -41,6 +41,16 @@ async def read_root():
     """Serve the main HTML page"""
     return FileResponse("front_page.html")
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint to verify API configuration"""
+    return {
+        "status": "healthy",
+        "gemini_configured": bool(GEMINI_API_KEY),
+        "api_key_format_valid": bool(GEMINI_API_KEY and GEMINI_API_KEY.startswith('AIza')),
+        "model_available": bool(model)
+    }
+
 @app.get("/animal/{animal_name}")
 async def get_animal_image(animal_name: str):
     """Return the path to the animal image"""
@@ -115,7 +125,13 @@ async def get_animal_facts(animal_name: str):
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating facts: {str(e)}")
+        error_detail = f"Error generating facts: {str(e)}"
+        print(f"❌ Gemini API Error: {error_detail}")
+        print(f"   Error type: {type(e).__name__}")
+        print(f"   API Key configured: {'Yes' if GEMINI_API_KEY else 'No'}")
+        if GEMINI_API_KEY:
+            print(f"   API Key format: {GEMINI_API_KEY[:10]}...{GEMINI_API_KEY[-4:]}")
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
