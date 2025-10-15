@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Selector & File Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .box:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-item label {
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .image-display {
+            margin-top: 20px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .image-display img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .file-info {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .file-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .file-info-value {
+            color: #333;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .animal-input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .animal-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .animal-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .facts-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .facts-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .facts-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .facts-display {
+            min-height: 200px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .facts-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .facts-list li {
+            background: #f8f9ff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+
+        .facts-list li::before {
+            content: "💡";
+            margin-right: 10px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            background: #fdf2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Box 1: Animal Selection -->
+        <div class="box">
+            <h2>🐾 Select an Animal</h2>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cat" name="animal" value="cat">
+                    <label for="cat">🐱 Cat</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="dog" name="animal" value="dog">
+                    <label for="dog">🐕 Dog</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="elephant" name="animal" value="elephant">
+                    <label for="elephant">🐘 Elephant</label>
+                </div>
+            </div>
+            <div class="image-display" id="imageDisplay">
+                <p class="placeholder">Select an animal to see its image</p>
+            </div>
+        </div>
+
+        <!-- Box 2: Animal Facts -->
+        <div class="box">
+            <h2>🧠 Animal Facts</h2>
+            <div class="animal-input-section">
+                <input type="text" id="animalInput" placeholder="Enter any animal name..." class="animal-input">
+                <button id="getFactsBtn" class="facts-button">Get Facts</button>
+            </div>
+            <div class="loading" id="factsLoading">Getting interesting facts...</div>
+            <div class="facts-display" id="factsDisplay">
+                <p class="placeholder">Enter an animal name to get 5 interesting facts!</p>
+            </div>
+        </div>
+
+        <!-- Box 3: File Upload -->
+        <div class="box">
+            <h2>📁 Upload a File</h2>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput">
+                <div class="upload-icon">📤</div>
+                <p class="upload-text">Click to select a file or drag and drop</p>
+            </div>
+            <div class="loading" id="loading">Processing...</div>
+            <div class="file-info" id="fileInfo">
+                <div class="file-info-item">
+                    <span class="file-info-label">File Name:</span>
+                    <span class="file-info-value" id="fileName">-</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">File Size:</span>
+                    <span class="file-info-value" id="fileSize">-</span>
+                </div>
+                <div class="file-info-item">
+                    <span class="file-info-label">File Type:</span>
+                    <span class="file-info-value" id="fileType">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        // Animal images (base64 encoded for standalone demo)
+        const animalImages = {
+            cat: '/images/cat.jpg',
+            dog: '/images/dog.jpg',
+            elephant: '/images/elephant.jpg'
+        };
+
+        // Handle animal selection
+        const checkboxes = document.querySelectorAll('input[name="animal"]');
+        const imageDisplay = document.getElementById('imageDisplay');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Uncheck other checkboxes
+                checkboxes.forEach(cb => {
+                    if (cb !== this) cb.checked = false;
+                });
+
+                // Display image
+                if (this.checked) {
+                    const animal = this.value;
+                    imageDisplay.innerHTML = `<img src="${animalImages[animal]}" alt="${animal}">`;
+                } else {
+                    imageDisplay.innerHTML = '<p class="placeholder">Select an animal to see its image</p>';
+                }
+            });
+        });
+
+        // Handle animal facts
+        const animalInput = document.getElementById('animalInput');
+        const getFactsBtn = document.getElementById('getFactsBtn');
+        const factsDisplay = document.getElementById('factsDisplay');
+        const factsLoading = document.getElementById('factsLoading');
+
+        getFactsBtn.addEventListener('click', async () => {
+            const animalName = animalInput.value.trim();
+            if (!animalName) {
+                alert('Please enter an animal name');
+                return;
+            }
+
+            // Show loading
+            factsLoading.classList.add('show');
+            factsDisplay.innerHTML = '';
+            getFactsBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/animal-facts/${encodeURIComponent(animalName)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display facts
+                    const factsList = data.facts.map(fact => `<li>${fact}</li>`).join('');
+                    factsDisplay.innerHTML = `
+                        <h3 style="color: #667eea; margin-bottom: 15px;">🐾 ${data.animal} Facts:</h3>
+                        <ul class="facts-list">${factsList}</ul>
+                    `;
+                } else {
+                    factsDisplay.innerHTML = `<div class="error-message">${data.detail}</div>`;
+                }
+            } catch (error) {
+                console.error('Error fetching facts:', error);
+                factsDisplay.innerHTML = '<div class="error-message">Error fetching facts. Make sure the backend server is running and Gemini API is configured.</div>';
+            } finally {
+                factsLoading.classList.remove('show');
+                getFactsBtn.disabled = false;
+            }
+        });
+
+        // Allow Enter key to trigger facts search
+        animalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                getFactsBtn.click();
+            }
+        });
+
+        // Handle file upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const loading = document.getElementById('loading');
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show loading
+            loading.classList.add('show');
+            fileInfo.classList.remove('show');
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Send to backend
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Display file info
+                document.getElementById('fileName').textContent = data.filename;
+                document.getElementById('fileSize').textContent = data.size;
+                document.getElementById('fileType').textContent = data.type || 'Unknown';
+
+                loading.classList.remove('show');
+                fileInfo.classList.add('show');
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                loading.classList.remove('show');
+                alert('Error uploading file. Make sure the backend server is running on http://localhost:8000');
+            }
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#764ba2';
+            uploadArea.style.background = '#f8f9ff';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.background = '';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.background = '';
+            
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>
