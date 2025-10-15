@@ -6,7 +6,7 @@ A FastAPI application for animal image selection, AI-powered animal facts, and f
 
 - FastAPI web application
 - Animal image selection (cat, dog, elephant)
-- **NEW: AI-powered animal facts using Google Gemini 1.5 Flash**
+- **NEW: AI-powered animal facts using Google Gemini 2.5 Flash**
 - File upload functionality
 - CORS enabled for frontend integration
 - Simple EC2 deployment ready
@@ -137,7 +137,7 @@ To run the application as a background service on EC2:
 
 - `GET /` - Main HTML page
 - `GET /animal/{animal_name}` - Get animal image URL
-- `GET /animal-facts/{animal_name}` - Get 5 interesting facts about an animal using Gemini 1.5 Flash AI
+- `GET /animal-facts/{animal_name}` - Get 5 interesting facts about an animal using Gemini 2.5 Flash AI
 - `POST /upload` - Upload file and get file information
 
 ## Environment Variables

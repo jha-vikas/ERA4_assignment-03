@@ -16,7 +16,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     model = None
 
@@ -61,19 +61,53 @@ async def get_animal_facts(animal_name: str):
         raise HTTPException(status_code=500, detail="Gemini API not configured. Please set GEMINI_API_KEY environment variable.")
     
     try:
-        prompt = f"Give me 5 interesting and educational facts about {animal_name}. Format the response as a JSON array of strings, where each string is one fact. Make the facts engaging and informative."
+        prompt = f"Give me 5 interesting and educational facts about {animal_name}. Return ONLY a JSON array of strings, no other text, no markdown, no code blocks. Each string should be one fact. Example: [\"Fact 1\", \"Fact 2\", \"Fact 3\", \"Fact 4\", \"Fact 5\"]"
         
         response = model.generate_content(prompt)
         
+        # Clean up the response text
+        response_text = response.text.strip()
+        
+        # Remove markdown code blocks if present
+        if response_text.startswith('```json'):
+            response_text = response_text[7:]
+        if response_text.startswith('```'):
+            response_text = response_text[3:]
+        if response_text.endswith('```'):
+            response_text = response_text[:-3]
+        
         # Try to parse the response as JSON
         try:
-            facts = json.loads(response.text)
-        except json.JSONDecodeError:
+            facts = json.loads(response_text)
+            # Ensure it's a list
+            if not isinstance(facts, list):
+                raise ValueError("Response is not a list")
+            # Clean up each fact
+            facts = [fact.strip().strip('"').strip("'") for fact in facts if fact.strip()]
+        except (json.JSONDecodeError, ValueError):
             # If not JSON, split by lines and clean up
-            facts_text = response.text.strip()
-            facts = [fact.strip() for fact in facts_text.split('\n') if fact.strip()]
-            # Take only the first 5 facts
-            facts = facts[:5]
+            facts_text = response_text.strip()
+            # Remove any remaining JSON brackets
+            facts_text = facts_text.replace('[', '').replace(']', '').replace('{', '').replace('}', '')
+            # Split by commas or newlines
+            facts = []
+            for line in facts_text.split(','):
+                if line.strip():
+                    fact = line.strip().strip('"').strip("'").strip()
+                    if fact and not fact.startswith('```'):
+                        facts.append(fact)
+            
+            # If still no facts, try splitting by newlines
+            if not facts:
+                for line in facts_text.split('\n'):
+                    if line.strip():
+                        fact = line.strip().strip('"').strip("'").strip()
+                        if fact and not fact.startswith('```'):
+                            facts.append(fact)
+        
+        # Take only the first 5 facts and clean them up
+        facts = facts[:5]
+        facts = [fact.strip() for fact in facts if fact.strip()]
         
         return {
             "animal": animal_name,
