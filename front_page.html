@@ -322,7 +322,9 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:8000';
+        const API_URL = window.location.protocol + '//' + window.location.host;
+        console.log('API_URL is:', API_URL);
+        console.log('window.location:', window.location);
         
         // Animal images (base64 encoded for standalone demo)
         const animalImages = {

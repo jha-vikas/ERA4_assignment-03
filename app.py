@@ -16,7 +16,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     model = None
 
@@ -51,6 +51,12 @@ async def health_check():
         "model_available": bool(model)
     }
 
+@app.get("/test")
+async def test_endpoint():
+    """Simple test endpoint to verify the server is working"""
+    print("🧪 Test endpoint called")
+    return {"message": "Server is working!", "timestamp": "2024-10-15"}
+
 @app.get("/animal/{animal_name}")
 async def get_animal_image(animal_name: str):
     """Return the path to the animal image"""
@@ -67,7 +73,10 @@ async def get_animal_image(animal_name: str):
 @app.get("/animal-facts/{animal_name}")
 async def get_animal_facts(animal_name: str):
     """Get 5 interesting facts about an animal using Gemini AI"""
+    print(f"🐾 Received request for animal facts: {animal_name}")
+    
     if not model:
+        print("❌ Gemini model not configured")
         raise HTTPException(status_code=500, detail="Gemini API not configured. Please set GEMINI_API_KEY environment variable.")
     
     try:
